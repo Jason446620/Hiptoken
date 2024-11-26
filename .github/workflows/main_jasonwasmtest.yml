@@ -21,11 +21,21 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      # publishes Blazor project to the release folder
+      - name: Publish .NET Project
+        run: dotnet publish webapp/Hiptoken.csproj -c Release -o release --nologo
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      # changes the base-tag in index.html from '/' to 'BlazorGitHubPagesDemo' to match GitHub Pages repository subdirectory
+      #- name: Change base-tag in index.html from / to Hiptoken
+      # run: sed -i 's/<base href="\/" \/>/<base href="\/Hiptoken\/" \/>/g' release/wwwroot/index.html
+
+      # copy index.html to 404.html to serve the same file when a file is not found
+      - name: copy index.html to 404.html
+        run: cp release/wwwroot/index.html release/wwwroot/404.html
+
+      # add .nojekyll file to tell GitHub pages to not treat this as a Jekyll project. (Allow files and folders starting with an underscore)
+      - name: Add .nojekyll file
+        run: touch release/wwwroot/.nojekyll
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
